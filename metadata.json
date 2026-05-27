@@ -1,0 +1,6 @@
+{
+  "name": "English Voice Tutor",
+  "description": "An interactive AI English tutor powered by Gemini with custom voice synthesis and speech recognition for explaining lessons, generating grammar/vocabulary exercises, grading tests, and correcting user pronunciation and spelling.",
+  "requestFramePermissions": ["microphone"],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}
