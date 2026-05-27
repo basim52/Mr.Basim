@@ -421,6 +421,56 @@ Construct exactly ${actualWeeksCount} weeks. Every week should have exactly 2 or
 });
 
 
+// ENDPOINT: Mini-Dictionary Word Lookup
+app.post("/api/tutor/dictionary", async (req, res) => {
+  const { word } = req.body;
+  if (!word || typeof word !== "string") {
+    return res.status(400).json({ error: "Word is required" });
+  }
+
+  const cleanWord = word.trim().replace(/[^a-zA-Z\s'-]/g, "");
+  if (!cleanWord) {
+    return res.status(400).json({ error: "Invalid English word" });
+  }
+
+  const systemPrompt = `You are Mr. Basim, the expert Arabic-English language dictionary companion. 
+Given an English word or short idioms/phrases, you provide:
+1. The standard Arabic translation of this word.
+2. An English definition that is clear, pedagogically sound, and simple for beginners/intermediates to comprehend.
+3. An intuitive Arabic text pronunciation guide / hint.
+4. A high-quality realistic English example sentence incorporating the target word.
+5. A beautiful, accurate Arabic translation of the example sentence.
+
+Respond with strict JSON following the requested responseSchema. Maintain friendly, warm linguistic standards.`;
+
+  const userPrompt = `Look up the English word or phrase: "${cleanWord}" and provide its definition, translation, pronunciation, example sentence and example translation.`;
+
+  const dictionarySchema = {
+    type: Type.OBJECT,
+    properties: {
+      word: { type: Type.STRING },
+      translationAr: { type: Type.STRING, description: "Direct, common Arabic translation of the word" },
+      definitionEn: { type: Type.STRING, description: "A clean, simple English linguistic explanation" },
+      pronunciationHint: { type: Type.STRING, description: "Syllable guide or phonetic sounding spelled with Arabic/English characters" },
+      exampleSentence: { type: Type.STRING, description: "Clear English sentence demonstrating core usage of the word" },
+      exampleTranslationAr: { type: Type.STRING, description: "Accurate translation of the example sentence to Arabic" }
+    },
+    required: ["word", "translationAr", "definitionEn", "pronunciationHint", "exampleSentence", "exampleTranslationAr"]
+  };
+
+  if (!hasApiKey()) {
+    return res.json(getFallbackDictionaryWord(cleanWord));
+  }
+
+  try {
+    const data = await generateJsonWithGemini(systemPrompt, userPrompt, dictionarySchema);
+    res.json(data);
+  } catch (err: any) {
+    res.status(500).json({ error: err.message, fallback: getFallbackDictionaryWord(cleanWord) });
+  }
+});
+
+
 // ==========================================================
 // FALLBACK DATA GENERATORS
 // Used when GEMINI_API_KEY is not configured or fails
@@ -810,6 +860,86 @@ function getFallbackPlan(goal: string, level: string, weakestSkill: string, week
     dailyCommitmentMinutes: normalizedLevel === "Beginner" ? 20 : normalizedLevel === "Intermediate" ? 25 : 30,
     weeks: slicedWeeks,
     generalAdviceAr: adviceByLevel[normalizedLevel] || adviceByLevel.Beginner
+  };
+}
+
+
+function getFallbackDictionaryWord(word: string) {
+  const defaultWords: { [key: string]: { translationAr: string, definitionEn: string, pronunciationHint: string, exampleSentence: string, exampleTranslationAr: string } } = {
+    "introduce": {
+      translationAr: "يقدم / يعرف بنفسه",
+      definitionEn: "To present a person to another so as to make them acquainted.",
+      pronunciationHint: "إِنْ-تْرو-دْيوس [in-tro-duce]",
+      exampleSentence: "Let me introduce you to our expert English tutor Basim.",
+      exampleTranslationAr: "اسمح لي أن أقدمك لمعلم الإنجليزية الخبير لدينا، الأستاذ باسم."
+    },
+    "accent": {
+      translationAr: "لهجة النطق",
+      definitionEn: "A distinctive mode of spelling or pronunciation of a language, especially one associated with a locality or social class.",
+      pronunciationHint: "أَكْ-سِنْت [ak-sent]",
+      exampleSentence: "She speaks English with a beautiful, clean accent.",
+      exampleTranslationAr: "إنها تتحدث الإنجليزية بلكنة جميلة وصافية."
+    },
+    "grammar": {
+      translationAr: "قواعد اللغة",
+      definitionEn: "The whole system and structure of a language helpfully used in conversation.",
+      pronunciationHint: "غْرا-مَرْ [gra-mar]",
+      exampleSentence: "Good grammar helps you express yourself clearly.",
+      exampleTranslationAr: "القواعد السليمة تساعدك على التعبير عن نفسك بوضوح."
+    },
+    "practice": {
+      translationAr: "يمارس / يتدرب",
+      definitionEn: "Perform or exercise a skill repeatedly or regularly in order to maintain proficiency.",
+      pronunciationHint: "بْراكْ-تِس [prak-tis]",
+      exampleSentence: "You must practice English speaking daily.",
+      exampleTranslationAr: "يجب عليك ممارسة التحدث بالإنجليزية يومياً."
+    },
+    "exhausted": {
+      translationAr: "منهك / متعب تمامًا",
+      definitionEn: "Extremely tired physically or mentally drained from high effort.",
+      pronunciationHint: "إِغْ-زوس-تِد [eg-zos-ted]",
+      exampleSentence: "After studying the dense grammar, he was completely exhausted.",
+      exampleTranslationAr: "بعد دراسة القواعد الكثيفة، كان متعباً تماماً."
+    },
+    "idiom": {
+      translationAr: "تعبير اصطلاحي مجازي",
+      definitionEn: "A cultural group of words having a meaning that is not understood literally.",
+      pronunciationHint: "إِ-دْيُم [id-ee-um]",
+      exampleSentence: "'Break a leg' is a nice English idiom meaning good luck.",
+      exampleTranslationAr: "'Break a leg' هو تعبير إنجليزي شهير يعني حظاً موفقاً."
+    },
+    "hello": {
+      translationAr: "مرحباً",
+      definitionEn: "A common greeting used when meeting someone or starting a discussion.",
+      pronunciationHint: "هَ-لو [hel-lo]",
+      exampleSentence: "Hello! My name is tutor Basim.",
+      exampleTranslationAr: "مرحباً! أنا معلمك باسم."
+    },
+    "outstanding": {
+      translationAr: "تميز استثنائي / رائع",
+      definitionEn: "Exceptionally good, distinguished, or outstandingly excellent.",
+      pronunciationHint: "أُوتْ-سْتَانْ-دِنْغ [out-stan-ding]",
+      exampleSentence: "Your pronunciation of this sentence is outstanding!",
+      exampleTranslationAr: "نطقك لهذه الجملة متميز ورائع للغاية!"
+    }
+  };
+
+  const lowered = word.toLowerCase().trim();
+  if (defaultWords[lowered]) {
+    return {
+      word,
+      ...defaultWords[lowered]
+    };
+  }
+
+  // Generalized smart default translator fallback
+  return {
+    word,
+    translationAr: `ترجمة فورية للمعاينة لحين ربط مفتاح الذكاء الاصطناعي`,
+    definitionEn: `The English word or phrase '${word}' in localized fallback mode.`,
+    pronunciationHint: `[${word}]`,
+    exampleSentence: `Understanding the word '${word}' can improve your daily conversations.`,
+    exampleTranslationAr: `مفهوم ومعنى مصطلح '${word}' يمكن أن يحسن من حواراتك اليومية.`
   };
 }
 

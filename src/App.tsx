@@ -11,6 +11,7 @@ import ExerciseList from './components/ExerciseList';
 import TestViewer from './components/TestViewer';
 import Chatroom from './components/Chatroom';
 import DevelopmentPlans from './components/DevelopmentPlans';
+import SmartDictionary from './components/SmartDictionary';
 import { 
   GraduationCap, 
   BookOpen, 
@@ -245,7 +246,7 @@ export default function App() {
   };
 
   return (
-    <div className="min-h-screen bg-sky-50 flex flex-col font-sans select-none antialiased text-right" style={{ direction: 'rtl' }}>
+    <div className="min-h-screen bg-sky-50 flex flex-col font-sans select-text antialiased text-right" style={{ direction: 'rtl' }}>
       
       {/* 1. Main Application Header Desk */}
       <header className="sticky top-0 z-40 bg-white shadow-sm border-b-4 border-sky-200">
@@ -436,6 +437,9 @@ export default function App() {
           <p className="font-mono text-sky-450 text-[10px]">© 2026 English Voice Tutor. Powered by Gemini AI with Vibrant Theme.</p>
         </div>
       </footer>
+
+      {/* Floating Instant Translation Dictionary */}
+      <SmartDictionary />
 
     </div>
   );
