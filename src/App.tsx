@@ -533,6 +533,12 @@ export default function App() {
                 <span className="text-[10px] font-black text-sky-400 tracking-wider">حالة متغيرات البيئة في السيرفر (Server Environment Logs)</span>
                 <div className="grid grid-cols-1 gap-2">
                   <div className="flex items-center justify-between p-3 bg-sky-50/50 rounded-xl border border-sky-150 text-xs font-mono">
+                    <span className="text-sky-900 font-bold">GEMINI_API_KEY1</span>
+                    <span className={`font-black px-2.5 py-0.5 rounded-full text-[10px] ${detectedKeys.GEMINI_API_KEY1 ? 'bg-green-100 text-green-700' : 'bg-red-100 text-red-600'}`}>
+                      {detectedKeys.GEMINI_API_KEY1 ? 'نشط مُكتشف  ✓' : 'غير متوفر  ✗'}
+                    </span>
+                  </div>
+                  <div className="flex items-center justify-between p-3 bg-sky-50/50 rounded-xl border border-sky-150 text-xs font-mono">
                     <span className="text-sky-900 font-bold">GEMINI_API_KEY</span>
                     <span className={`font-black px-2.5 py-0.5 rounded-full text-[10px] ${detectedKeys.GEMINI_API_KEY ? 'bg-green-100 text-green-700' : 'bg-red-100 text-red-600'}`}>
                       {detectedKeys.GEMINI_API_KEY ? 'نشط مُكتشف  ✓' : 'غير متوفر  ✗'}

@@ -15,9 +15,9 @@ app.use(express.json());
 let aiInstance: GoogleGenAI | null = null;
 function getGeminiClient(): GoogleGenAI {
   if (!aiInstance) {
-    const apiKey = process.env.GEMINI_API_KEY || process.env.GOOGLE_GENAI_API_KEY || process.env.GOOGLE_API_KEY;
+    const apiKey = process.env.GEMINI_API_KEY1 || process.env.GEMINI_API_KEY || process.env.GOOGLE_GENAI_API_KEY || process.env.GOOGLE_API_KEY;
     if (!apiKey) {
-      throw new Error("GEMINI_API_KEY, GOOGLE_GENAI_API_KEY, or GOOGLE_API_KEY environment variable is required to run the AI Tutor");
+      throw new Error("GEMINI_API_KEY, GEMINI_API_KEY1, GOOGLE_GENAI_API_KEY, or GOOGLE_API_KEY environment variable is required to run the AI Tutor");
     }
     aiInstance = new GoogleGenAI({
       apiKey,
@@ -32,11 +32,12 @@ function getGeminiClient(): GoogleGenAI {
 }
 
 // Global toggle helper to check whether Gemini Key exists
-const hasApiKey = () => !!(process.env.GEMINI_API_KEY || process.env.GOOGLE_GENAI_API_KEY || process.env.GOOGLE_API_KEY);
+const hasApiKey = () => !!(process.env.GEMINI_API_KEY1 || process.env.GEMINI_API_KEY || process.env.GOOGLE_GENAI_API_KEY || process.env.GOOGLE_API_KEY);
 
 // 1. Health & Config endpoint
 app.get("/api/config", (req, res) => {
   const checkKeys = {
+    GEMINI_API_KEY1: !!process.env.GEMINI_API_KEY1,
     GEMINI_API_KEY: !!process.env.GEMINI_API_KEY,
     GOOGLE_GENAI_API_KEY: !!process.env.GOOGLE_GENAI_API_KEY,
     GOOGLE_API_KEY: !!process.env.GOOGLE_API_KEY,
