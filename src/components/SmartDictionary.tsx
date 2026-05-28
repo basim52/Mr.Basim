@@ -27,10 +27,17 @@ export default function SmartDictionary() {
   // Audio status
   const [isSpeaking, setIsSpeaking] = useState(false);
 
+  const lastSearchedWordRef = useRef<string>('');
   const containerRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     const handleTextSelection = (e: MouseEvent | TouchEvent) => {
+      const target = e.target as HTMLElement;
+      // Do not trigger lookup if selection is inside the dictionary modal itself, or any input field
+      if (target.closest('.dictionary-exclude-select') || target.closest('input') || target.closest('textarea')) {
+        return;
+      }
+
       // Small timeout to allow browser selection object to populate fully
       setTimeout(() => {
         const selection = window.getSelection();
@@ -42,27 +49,10 @@ export default function SmartDictionary() {
         const isEnglishBasic = /^[a-zA-Z\s.,'?!-]+$/.test(text);
 
         if (text && text.length >= 2 && text.length <= 40 && isEnglishBasic) {
-          try {
-            const range = selection.getRangeAt(0);
-            const rect = range.getBoundingClientRect();
-            
-            if (rect.width > 0 && rect.height > 0) {
-              setFloatingMenuPos({
-                top: rect.top + window.scrollY - 36, // float above
-                left: rect.left + window.scrollX + rect.width / 2,
-              });
-              setCandidateWord(text);
-            }
-          } catch (err) {
-            // silent selection errors
-          }
-        } else {
-          // Check if we clicked outside the floating menu to dismiss it
-          if (floatingMenuPos) {
-            const target = e.target as HTMLElement;
-            if (!target.closest('#dictionary-floating-launcher')) {
-              setFloatingMenuPos(null);
-            }
+          // Trigger DIRECTLY immediately
+          if (text.toLowerCase() !== lastSearchedWordRef.current.toLowerCase()) {
+            lastSearchedWordRef.current = text;
+            handleLookup(text);
           }
         }
       }, 50);
@@ -75,7 +65,7 @@ export default function SmartDictionary() {
       document.removeEventListener('mouseup', handleTextSelection);
       document.removeEventListener('touchend', handleTextSelection);
     };
-  }, [floatingMenuPos]);
+  }, []);
 
   // Performs dictionary lookup from backend
   const handleLookup = async (wordToSearch: string) => {
@@ -188,13 +178,13 @@ export default function SmartDictionary() {
       {/* 3. Dictionary lookup details Modal */}
       <AnimatePresence>
         {isOpen && (
-          <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-sky-950/40 backdrop-blur-xs select-none">
+          <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-sky-950/40 backdrop-blur-xs select-text dictionary-exclude-select">
             {/* Modal card wrapper */}
             <motion.div
               initial={{ opacity: 0, scale: 0.95, y: 20 }}
               animate={{ opacity: 1, scale: 1, y: 0 }}
               exit={{ opacity: 0, scale: 0.95, y: 20 }}
-              className="bg-white border-4 border-sky-200 rounded-[35px] w-full max-w-lg overflow-hidden shadow-2xl flex flex-col text-right relative shadow-sky-950/20"
+              className="bg-white border-4 border-sky-300 rounded-[35px] w-full max-w-lg overflow-hidden shadow-2xl flex flex-col text-right relative shadow-sky-950/20 dictionary-exclude-select"
               style={{ direction: 'rtl' }}
             >
               {/* Header */}
